@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Halcyon â Tuesday Sales & Marketing Meeting</title>
+<style>
+  :root {
+    --bg: #1A1438; --card: #261E48; --card-light: #312859;
+    --accent: #E8567F; --accent-soft: #C44B6E;
+    --green: #34D399; --green-dark: #065F46; --green-bg: #0D3B2E;
+    --amber: #FBBF24; --amber-dark: #78350F; --amber-bg: #3D2A0A;
+    --red: #F87171; --red-dark: #7F1D1D; --red-bg: #3B1111;
+    --white: #FFFFFF; --text-pri: #F0ECF9; --text-sec: #B8B0D4; --text-muted: #7E74A3;
+    --divider: #3D3466; --pill-bg: #362D5E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-pri); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; border-bottom: 1px solid var(--divider); padding-bottom: 24px; }
+  .header h1 { font-size: 28px; font-weight: 700; color: var(--white); }
+  .header h1 span { color: var(--accent); }
+  .header .date { font-size: 13px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* Section */
+  .section { margin-bottom: 36px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 12px 0; user-select: none; }
+  .section-header h2 { font-size: 22px; font-weight: 700; color: var(--white); }
+  .section-header .toggle { font-size: 18px; color: var(--text-muted); transition: transform 0.2s; }
+  .section.collapsed .toggle { transform: rotate(-90deg); }
+  .section.collapsed .section-body { display: none; }
+  .section-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+
+  /* Stat cards row */
+  .stats-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card { background: var(--card); border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 140px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+  .stat-card.accent::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.red::before { background: var(--red); }
+  .stat-card .number { font-size: 32px; font-weight: 800; color: var(--white); }
+  .stat-card .number.accent-text { color: var(--accent); }
+  .stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .stat-card .delta { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .delta.green { color: var(--green); }
+  .delta.amber { color: var(--amber); }
+  .delta.red { color: var(--red); }
+
+  /* Pills */
+  .pills { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .pill { background: var(--pill-bg); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1px solid transparent; }
+  .pill:hover { border-color: var(--text-muted); }
+  .pill.active { border-color: var(--accent); color: var(--accent); }
+  .pill.green { color: var(--green); }
+  .pill.amber { color: var(--amber); }
+  .pill.accent { color: var(--accent); }
+
+  /* Filter row */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn { background: var(--pill-bg); border: 1px solid transparent; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--text-muted); color: var(--text-sec); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,86,127,0.1); }
+
+  /* Stage columns (New Deals) */
+  .stage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stage-col { background: var(--card); border-radius: 10px; overflow: hidden; }
+  .stage-col-header { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .stage-badge { background: var(--accent); color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+  .stage-label { font-size: 11px; color: var(--text-muted); }
+  .stage-count { font-size: 18px; font-weight: 700; color: var(--white); }
+  .stage-col-body { padding: 0 14px 14px; }
+  .deal-item { padding: 8px 0; border-top: 1px solid var(--divider); }
+  .deal-item:first-child { border-top: none; }
+  .deal-name { font-size: 13px; font-weight: 600; color: var(--text-sec); }
+  .deal-prod { font-size: 11px; color: var(--text-muted); font-style: italic; }
+
+  /* Meeting cards */
+  .meetings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .meeting-col { background: var(--card); border-radius: 10px; overflow: hidden; }
+  .meeting-col-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
+  .meeting-col-header.green-hdr { background: var(--green-dark); color: var(--green); }
+  .meeting-col-header.amber-hdr { background: var(--amber-dark); color: var(--amber); }
+  .meeting-col-header.accent-hdr { background: #5C2249; color: var(--accent); }
+  .meeting-col-body { padding: 4px 16px 12px; }
+  .meeting-row { padding: 10px 0; border-bottom: 1px solid var(--divider); cursor: default; transition: background 0.1s; }
+  .meeting-row:last-child { border-bottom: none; }
+  .meeting-row:hover { background: rgba(255,255,255,0.03); margin: 0 -16px; padding-left: 16px; padding-right: 16px; border-radius: 6px; }
+  .meeting-co { font-size: 13px; font-weight: 600; color: var(--white); }
+  .meeting-owner { font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+  .meeting-detail { font-size: 12px; color: var(--text-sec); margin-top: 3px; line-height: 1.45; }
+
+  /* Deal health columns */
+  .health-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .health-col { border-radius: 10px; overflow: hidden; }
+  .health-col.momentum { background: var(--green-bg); }
+  .health-col.watchlist { background: var(--amber-bg); }
+  .health-col.at-risk { background: var(--red-bg); }
+  .health-col-header { padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .health-col.momentum .health-col-header { background: var(--green-dark); color: var(--green); }
+  .health-col.watchlist .health-col-header { background: var(--amber-dark); color: var(--amber); }
+  .health-col.at-risk .health-col-header { background: var(--red-dark); color: var(--red); }
+  .health-col-body { padding: 4px 16px 12px; }
+  .health-row { padding: 10px 0; border-bottom: 1px solid var(--divider); transition: background 0.1s; }
+  .health-row:last-child { border-bottom: none; }
+  .health-row:hover { background: rgba(255,255,255,0.03); margin: 0 -16px; padding-left: 16px; padding-right: 16px; border-radius: 6px; }
+  .health-row-top { display: flex; justify-content: space-between; align-items: center; }
+  .health-deal-name { font-size: 13px; font-weight: 600; color: var(--text-pri); }
+  .health-deal-owner { font-size: 11px; color: var(--text-muted); margin-left: 4px; font-weight: 400; }
+  .health-deal-amount { font-size: 13px; font-weight: 700; }
+  .momentum .health-deal-amount { color: var(--green); }
+  .watchlist .health-deal-amount { color: var(--amber); }
+  .at-risk .health-deal-amount { color: var(--red); }
+  .health-task { font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+  .overdue { color: var(--red) !important; font-weight: 600; }
+
+  /* WoW table */
+  .wow-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .wow-card { background: var(--card); border-radius: 10px; padding: 16px; text-align: center; }
+  .wow-card .wow-val { font-size: 28px; font-weight: 800; color: var(--white); }
+  .wow-card .wow-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+  .wow-card .wow-delta { font-size: 14px; font-weight: 700; margin-top: 6px; }
+
+  .stage-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
+  .stage-table th { text-align: left; padding: 10px 16px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; background: var(--card-light); }
+  .stage-table td { padding: 10px 16px; font-size: 13px; border-top: 1px solid var(--divider); }
+  .stage-table .stage-name { color: var(--text-sec); }
+  .stage-table .num { text-align: center; color: var(--text-pri); font-weight: 600; }
+  .stage-table .delta-cell { text-align: center; font-weight: 700; font-size: 13px; }
+  .stage-table .val-cell { text-align: right; font-weight: 600; font-size: 12px; }
+
+  .bottom-pills { display: flex; gap: 12px; margin-top: 16px; justify-content: center; }
+  .bottom-pill { background: var(--card); border-radius: 20px; padding: 8px 20px; font-size: 12px; font-weight: 600; }
+
+  /* Inbound forms */
+  .inbound-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .inbound-card { background: var(--card); border-radius: 10px; overflow: hidden; }
+  .inbound-card-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
+  .inbound-card-header.dp-hdr { background: #1E3A5F; color: #60A5FA; }
+  .inbound-card-header.contact-hdr { background: #3D2A0A; color: var(--amber); }
+  .inbound-card-body { padding: 8px 16px 14px; }
+  .inbound-row { padding: 8px 0; border-bottom: 1px solid var(--divider); }
+  .inbound-row:last-child { border-bottom: none; }
+  .inbound-row-top { display: flex; justify-content: space-between; align-items: center; }
+  .inbound-name { font-size: 13px; font-weight: 600; color: var(--text-pri); }
+  .inbound-company { font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+  .inbound-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .inbound-badge.booked { background: rgba(52,211,153,0.15); color: var(--green); }
+  .inbound-badge.pending { background: rgba(126,116,163,0.15); color: var(--text-muted); }
+  .inbound-prefs { font-size: 11px; color: var(--text-sec); margin-top: 3px; }
+  .inbound-source { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .interest-chart { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 12px; }
+  .interest-chip { background: var(--pill-bg); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .interest-chip .chip-count { color: #60A5FA; font-weight: 800; }
+  .conversion-stat { background: var(--card); border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+  .conversion-stat .conv-pct { font-size: 32px; font-weight: 800; color: var(--green); }
+  .conversion-stat .conv-label { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+  .conversion-stat .conv-label span { color: var(--text-sec); font-weight: 600; }
+
+  /* Trend charts */
+  .trend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .trend-card { background: var(--card); border-radius: 10px; padding: 20px; }
+  .trend-card h3 { font-size: 14px; font-weight: 700; color: var(--text-sec); margin-bottom: 4px; }
+  .trend-card .trend-subtitle { font-size: 11px; color: var(--text-muted); margin-bottom: 16px; }
+  .trend-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding-top: 8px; }
+  .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .trend-bar { width: 100%; border-radius: 4px 4px 0 0; transition: opacity 0.15s; min-height: 2px; position: relative; }
+  .trend-bar:hover { opacity: 0.8; }
+  .trend-bar .bar-val { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--text-pri); white-space: nowrap; }
+  .trend-bar.meetings-bar { background: linear-gradient(180deg, var(--green) 0%, #065F46 100%); }
+  .trend-bar.deals-bar { background: linear-gradient(180deg, var(--accent) 0%, #5C2249 100%); }
+  .trend-bar.current { box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+  .trend-bar.current.deals-bar { box-shadow: 0 0 8px rgba(232,86,127,0.4); }
+  .trend-label { font-size: 9px; color: var(--text-muted); margin-top: 6px; text-align: center; line-height: 1.2; }
+  .trend-avg-line { font-size: 11px; color: var(--text-muted); margin-top: 12px; }
+  .trend-avg-line span { color: var(--text-sec); font-weight: 700; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .stage-grid, .meetings-grid, .health-grid, .trend-grid { grid-template-columns: 1fr; }
+    .wow-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Owner legend */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .legend-item { font-size: 11px; color: var(--text-muted); }
+  .legend-item span { font-weight: 700; color: var(--text-sec); }
+
+  /* Tooltip */
+  .tooltip { position: relative; }
+  .tooltip .tip-text { visibility: hidden; background: var(--card-light); color: var(--text-pri); font-size: 12px; padding: 8px 12px; border-radius: 8px; position: absolute; z-index: 10; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.4); margin-bottom: 6px; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+  .tooltip:hover .tip-text { visibility: visible; opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1><span>Halcyon</span> Sales & Marketing</h1>
+      <div style="font-size:15px; color:var(--text-sec); margin-top:4px;">Tuesday Team Meeting</div>
+    </div>
+    <div class="date">MAR 10 â MAR 17, 2026</div>
+  </div>
+
+  <!-- OWNER LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><span>SH</span> Sam Haskel</div>
+    <div class="legend-item"><span>TG</span> Tad Glauthier</div>
+    <div class="legend-item"><span>CC</span> Cadey Comey</div>
+    <div class="legend-item"><span>JS</span> Jordan Swett</div>
+    <div class="legend-item"><span>NB</span> Nat Bullard</div>
+    <div class="legend-item"><span>CR</span> Casey Rials</div>
+    <div class="legend-item"><span>CS</span> Chris Schenker</div>
+  </div>
+
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <!-- SECTION 1: NEW DEALS CREATED                -->
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <div class="section" id="sec-deals">
+    <div class="section-header" onclick="toggleSection('sec-deals')">
+      <h2>New Deals Created</h2>
+      <span class="toggle">â¼</span>
+    </div>
+    <div class="section-body">
+      <div class="stats-row">
+        <div class="stat-card accent">
+          <div class="number accent-text">19</div>
+          <div class="label">new deals across 3 stages</div>
+        </div>
+        <div class="stat-card accent" style="flex:0.5;">
+          <div class="number" style="font-size:22px;">S1: 10</div>
+          <div class="label">Lead ID / MQL</div>
+        </div>
+        <div class="stat-card amber" style="flex:0.4;">
+          <div class="number" style="font-size:22px;">S2: 0</div>
+          <div class="label">Engaged / MQL</div>
+        </div>
+        <div class="stat-card green" style="flex:0.5;">
+          <div class="number" style="font-size:22px;">S3: 7</div>
+          <div class="label">Discovery / SQL</div>
+        </div>
+        <div class="stat-card accent" style="flex:0.4;">
+          <div class="number" style="font-size:22px;">S4: 2</div>
+          <div class="label">Proposal / SQL</div>
+        </div>
+      </div>
+
+      <div class="section-sub">Stage Breakdown</div>
+      <div class="stage-grid">
+        <!-- S1 -->
+        <div class="stage-col">
+          <div class="stage-col-header">
+            <div><span class="stage-badge">S1</span> <span class="stage-label">Lead ID / MQL</span></div>
+            <span class="stage-count">10</span>
+          </div>
+          <div class="stage-col-body">
+            <div class="deal-item"><div class="deal-name">Bloom Energy</div><div class="deal-prod">BP</div></div>
+            <div class="deal-item"><div class="deal-name">Nat'l Lab Rockies</div><div class="deal-prod">LLTT, RCT</div></div>
+            <div class="deal-item"><div class="deal-name">Energy Futures Grp</div><div class="deal-prod">LLTT</div></div>
+            <div class="deal-item"><div class="deal-name">NRECA</div><div class="deal-prod">LLTT</div></div>
+            <div class="deal-item"><div class="deal-name">Mainspring Energy</div><div class="deal-prod">QS</div></div>
+            <div class="deal-item"><div class="deal-name">Digital Realty</div><div class="deal-prod">BP</div></div>
+            <div class="deal-item"><div class="deal-name">Kearney</div><div class="deal-prod">RCT, QS</div></div>
+            <div class="deal-item"><div class="deal-name">Corbets Capital</div><div class="deal-prod">LLTT, RCT, SDT, BESS, BP</div></div>
+            <div class="deal-item"><div class="deal-name">Deca</div><div class="deal-prod">BP, QS</div></div>
+            <div class="deal-item"><div class="deal-name">Concentric Energy</div><div class="deal-prod">RCT</div></div>
+          </div>
+        </div>
+        <!-- S2 -->
+        <div class="stage-col">
+          <div class="stage-col-header">
+            <div><span class="stage-badge" style="background:var(--amber);">S2</span> <span class="stage-label">Engaged / MQL</span></div>
+            <span class="stage-count">0</span>
+          </div>
+          <div class="stage-col-body" style="padding:20px 14px; text-align:center;">
+            <div style="color:var(--text-muted); font-size:12px;">No new S2 deals this week</div>
+          </div>
+        </div>
+        <!-- S3 -->
+        <div class="stage-col">
+          <div class="stage-col-header">
+            <div><span class="stage-badge" style="background:var(--green);">S3</span> <span class="stage-label">Discovery / SQL</span></div>
+            <span class="stage-count">7</span>
+          </div>
+          <div class="stage-col-body">
+            <div class="deal-item"><div class="deal-name">Rivian</div><div class="deal-prod">LLTT, RCT</div></div>
+            <div class="deal-item"><div class="deal-name">Power Innovation</div><div class="deal-prod">GPPT, SDT</div></div>
+            <div class="deal-item"><div class="deal-name">Quanta Services</div><div class="deal-prod">RCT, BP</div></div>
+            <div class="deal-item"><div class="deal-name">Engie</div><div class="deal-prod">GPPT, LLTT, BESS, SDT, QS</div></div>
+            <div class="deal-item"><div class="deal-name">Priority Power</div><div class="deal-prod">GPPT, LLTT, SDT, BESS</div></div>
+            <div class="deal-item"><div class="deal-name">NewMexico.gov</div><div class="deal-prod">RCT</div></div>
+            <div class="deal-item"><div class="deal-name">Electron</div><div class="deal-prod">RCT, SDT</div></div>
+          </div>
+        </div>
+        <!-- S4 -->
+        <div class="stage-col">
+          <div class="stage-col-header">
+            <div><span class="stage-badge">S4</span> <span class="stage-label">Proposal / SQL</span></div>
+            <span class="stage-count">2</span>
+          </div>
+          <div class="stage-col-body">
+            <div class="deal-item"><div class="deal-name">Babcock Power</div><div class="deal-prod">GPPT, SDT</div></div>
+            <div class="deal-item"><div class="deal-name">AES</div><div class="deal-prod">LLTT, QS</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <!-- SECTION 2: CUSTOMER MEETINGS                -->
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <div class="section" id="sec-meetings">
+    <div class="section-header" onclick="toggleSection('sec-meetings')">
+      <h2>Customer Meetings</h2>
+      <span class="toggle">â¼</span>
+    </div>
+    <div class="section-body">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="number" style="color:var(--white);">16</div>
+          <div class="label">prospect meetings this week</div>
+          <div class="delta green">+7 vs last week (9)</div>
+        </div>
+      </div>
+
+      <div class="pills" id="meeting-filters">
+        <div class="pill green active" onclick="filterMeetings('all')">All 16</div>
+        <div class="pill green" onclick="filterMeetings('demo')">Demos (6)</div>
+        <div class="pill amber" onclick="filterMeetings('intro')">Intros (5)</div>
+        <div class="pill accent" onclick="filterMeetings('qual')">Qualification (5)</div>
+      </div>
+
+      <div class="filter-row" id="owner-filters">
+        <div class="filter-btn active" onclick="filterOwner('all')">All Reps</div>
+        <div class="filter-btn" onclick="filterOwner('JS')">JS</div>
+        <div class="filter-btn" onclick="filterOwner('TG')">TG</div>
+        <div class="filter-btn" onclick="filterOwner('CC')">CC</div>
+        <div class="filter-btn" onclick="filterOwner('NB')">NB</div>
+        <div class="filter-btn" onclick="filterOwner('CR')">CR</div>
+      </div>
+
+      <div class="meetings-grid" id="meetings-container">
+        <!-- Demos -->
+        <div class="meeting-col" data-type="demo">
+          <div class="meeting-col-header green-hdr"><span>Demos</span><span>6</span></div>
+          <div class="meeting-col-body">
+            <div class="meeting-row" data-owner="JS"><div><span class="meeting-co">Bloom Energy</span><span class="meeting-owner">JS</span></div><div class="meeting-detail">Demo'd regulatory platform + NLP to 3 stakeholders. Moving to subscription â add Justin for tracker access.</div></div>
+            <div class="meeting-row" data-owner="TG"><div><span class="meeting-co">E3</span><span class="meeting-owner">TG</span></div><div class="meeting-detail">RCT deep dive + pricing negotiation w/ 5 attendees. Finalizing paid tracker tiers; group onboarding next.</div></div>
+            <div class="meeting-row" data-owner="JS"><div><span class="meeting-co">Hut 8</span><span class="meeting-owner">JS</span></div><div class="meeting-detail">6-person demo for energy origination team. Jimmy Martini to provide feedback on spend & tech stack.</div></div>
+            <div class="meeting-row" data-owner="NB"><div><span class="meeting-co">ENGIE/Zipdragon</span><span class="meeting-owner">NB</span></div><div class="meeting-detail">Nat & Alex presented AI regulatory tools. Sheeraz to share internally at ENGIE; follow-up during Houston visit.</div></div>
+            <div class="meeting-row" data-owner="TG"><div><span class="meeting-co">Danovo/Quanta</span><span class="meeting-owner">TG</span></div><div class="meeting-detail">Platform training w/ 9 attendees from Danovo + Quanta. All creating accounts; RCT follow-up session Wed.</div></div>
+            <div class="meeting-row" data-owner="TG"><div><span class="meeting-co">Silicon Ranch</span><span class="meeting-owner">TG</span></div><div class="meeting-detail">Interested in LLTT for post-2030 market opps & data center biz dev. Sending preview file + scheduling deeper demo.</div></div>
+          </div>
+        </div>
+        <!-- Intros -->
+        <div class="meeting-col" data-type="intro">
+          <div class="meeting-col-header amber-hdr"><span>Intros</span><span>5</span></div>
+          <div class="meeting-col-body">
+            <div class="meeting-row" data-owner="JS"><div><span class="meeting-co">Eolian Energy</span><span class="meeting-owner">JS</span></div><div class="meeting-detail">49min intro w/ 3 attendees. Interested in market strategy support. Product demo follow-up scheduled.</div></div>
+            <div class="meeting-row" data-owner="CC"><div><span class="meeting-co">AES Clean Energy</span><span class="meeting-owner">CC</span></div><div class="meeting-detail">Noah Mitchell-Ward interested in regulatory alerting for renewables. Arranging 45-60min demo w/ leadership.</div></div>
+            <div class="meeting-row" data-owner="TG"><div><span class="meeting-co">TD Securities</span><span class="meeting-owner">TG</span></div><div class="meeting-detail">Interested in large load tariff data for data center client letters of credit. Trevor coordinating w/ research team.</div></div>
+            <div class="meeting-row" data-owner="CC"><div><span class="meeting-co">NM PRC</span><span class="meeting-owner">CC</span></div><div class="meeting-detail">Gov agency needs historical regulatory archives (back to 1990s). Checking pre-2021 data availability.</div></div>
+            <div class="meeting-row" data-owner="CC"><div><span class="meeting-co">Southern Company</span><span class="meeting-owner">CC</span></div><div class="meeting-detail">11min qual â large load tariffs across GA, AL, MS. Follow-up w/ CDO and CRO scheduled Thursday.</div></div>
+          </div>
+        </div>
+        <!-- Qualification -->
+        <div class="meeting-col" data-type="qual">
+          <div class="meeting-col-header accent-hdr"><span>Qualification & Other</span><span>5</span></div>
+          <div class="meeting-col-body">
+            <div class="meeting-row" data-owner="JS"><div><span class="meeting-co">Electron</span><span class="meeting-owner">JS</span></div><div class="meeting-detail">20min qual â needs regulatory signals for go-to-market timing in US utility markets. Follow-up w/ CDO in 1 week.</div></div>
+            <div class="meeting-row" data-owner="CC"><div><span class="meeting-co">Kearney</span><span class="meeting-owner">CC</span></div><div class="meeting-detail">15min qual â Brian Fletcher interested in utility capital investment trends & rate cases. Demo scheduled Tue 9:30am PT.</div></div>
+            <div class="meeting-row" data-owner="CC"><div><span class="meeting-co">UC Davis</span><span class="meeting-owner">CC</span></div><div class="meeting-detail">8min qual â Jaden Zhao interested in LLTT for academic research. Sending preview data file.</div></div>
+            <div class="meeting-row" data-owner="CR"><div><span class="meeting-co">Coldwell Energy</span><span class="meeting-owner">CR</span></div><div class="meeting-detail">Follow-up w/ Tiffany Douglas post-Series A. Discussed growth opps; sending implementation plan.</div></div>
+            <div class="meeting-row" data-owner="CC"><div><span class="meeting-co">Aterio</span><span class="meeting-owner">CC</span></div><div class="meeting-detail">33min onboarding â 4-person team tracking 500+ substations for data center projects. Active platform use starting.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <!-- SECTION: INBOUND FORM FILLS                 -->
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <div class="section" id="sec-inbound">
+    <div class="section-header" onclick="toggleSection('sec-inbound')">
+      <h2>Inbound Form Fills</h2>
+      <span class="toggle">â¼</span>
+    </div>
+    <div class="section-body">
+      <div class="section-sub">Mar 10 â Mar 17, 2026 Â· HubSpot Form Submissions</div>
+
+      <div class="stats-row">
+        <div class="stat-card" style="border-left:4px solid #60A5FA;">
+          <div class="number" style="color:#60A5FA;">19</div>
+          <div class="label">DP Interest Forms</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="number" style="color:var(--amber);">7</div>
+          <div class="label">Contact Us Forms</div>
+        </div>
+        <div class="stat-card green">
+          <div class="number" style="color:var(--green);">13</div>
+          <div class="label">Booked 15-min Demos</div>
+          <div class="delta green">68% of DP Interest â Demo</div>
+        </div>
+      </div>
+
+      <!-- Interest Breakdown -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:1.5px;">Product Interest (from DP Forms)</div>
+        <div class="interest-chart">
+          <div class="interest-chip"><span class="chip-count">14</span> LLTT</div>
+          <div class="interest-chip"><span class="chip-count">8</span> Rate Cases</div>
+          <div class="interest-chip"><span class="chip-count">6</span> Substations</div>
+          <div class="interest-chip"><span class="chip-count">5</span> GPPT</div>
+          <div class="interest-chip"><span class="chip-count">4</span> Query Tools</div>
+          <div class="interest-chip"><span class="chip-count">3</span> Storage</div>
+          <div class="interest-chip"><span class="chip-count">2</span> FERC</div>
+        </div>
+      </div>
+
+      <div class="inbound-grid">
+        <!-- DP Interest Form -->
+        <div class="inbound-card">
+          <div class="inbound-card-header dp-hdr"><span>DP Interest Form</span><span>19</span></div>
+          <div class="inbound-card-body">
+            <!-- Booked demos -->
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Brent Bowles</span><span class="inbound-company">Fluence</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Storage Â· LLTT Â· Query Tools</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Chunjung Yoo</span><span class="inbound-company">SK Group</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">GPPT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Maximilian Plies</span><span class="inbound-company">Dataprana</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Substations</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Connor Stone</span><span class="inbound-company">GPC Infrastructure</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Substations Â· LLTT Â· GPPT Â· FERC</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Yash Gupta</span><span class="inbound-company">Rivian</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Rate Cases Â· LLTT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Christopher Sanders</span><span class="inbound-company">Turner & Townsend</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Storage Â· GPPT Â· Query Tools</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Stacy Sherwood</span><span class="inbound-company">Energy Futures Group</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">LLTT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Trevor Hope</span><span class="inbound-company">TD Securities</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">LLTT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Mike Mclouth</span><span class="inbound-company">Priority Power</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Storage Â· Substations Â· LLTT Â· GPPT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Zachary Byrum</span><span class="inbound-company">WRI</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Rate Cases Â· LLTT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Jaden Zhao</span><span class="inbound-company">UC Davis</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">LLTT</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Brian Fletcher</span><span class="inbound-company">Kearney</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Rate Cases Â· Query Tools</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Callum Stanton</span><span class="inbound-company">Electron</span></div><span class="inbound-badge booked">Booked</span></div><div class="inbound-prefs">Rate Cases Â· Substations</div><div class="inbound-source">Source: halcyon.io</div></div>
+            <!-- Not booked -->
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">John La Prise</span><span class="inbound-company">CBRE</span></div><span class="inbound-badge pending">Pending</span></div><div class="inbound-prefs">RCT Â· Storage Â· Substations Â· LLTT Â· GPPT Â· Query Â· FERC Â· Other</div><div class="inbound-source">Source: Shared form link</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Gordon Dolven</span><span class="inbound-company">CBRE</span></div><span class="inbound-badge pending">Pending</span></div><div class="inbound-prefs">Substations Â· GPPT</div><div class="inbound-source">Source: Shared form link</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Rory Mcilmoil</span><span class="inbound-company">Nat'l Lab of the Rockies</span></div><span class="inbound-badge pending">Pending</span></div><div class="inbound-prefs">Rate Cases Â· LLTT</div><div class="inbound-source">Source: Shared form link</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Jacquelyn Pless</span><span class="inbound-company">MIT</span></div><span class="inbound-badge pending">Pending</span></div><div class="inbound-prefs">Rate Cases Â· LLTT</div><div class="inbound-source">Source: Shared form link</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Anthony Buckley</span><span class="inbound-company">NRECA</span></div><span class="inbound-badge pending">Pending</span></div><div class="inbound-prefs">LLTT</div><div class="inbound-source">Source: Shared form link</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Michael Scott</span><span class="inbound-company">Neara</span></div><span class="inbound-badge pending">Pending</span></div><div class="inbound-prefs">Rate Cases Â· Query Tools Â· Other</div><div class="inbound-source">Source: Integration (offline)</div></div>
+          </div>
+        </div>
+
+        <!-- Contact Us -->
+        <div class="inbound-card">
+          <div class="inbound-card-header contact-hdr"><span>Contact Us</span><span>7</span></div>
+          <div class="inbound-card-body">
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Ian Hoffmann</span><span class="inbound-company">Prospective Advisors</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Soraya Moinian</span><span class="inbound-company">Ness</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Finn Reed</span><span class="inbound-company">Angeleno Group</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Joseph Hamieh</span><span class="inbound-company">lisolux-sarl</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Grant Alpert</span><span class="inbound-company">West Monroe</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Jay Rymal</span><span class="inbound-company">Millennium Management</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+            <div class="inbound-row"><div class="inbound-row-top"><div><span class="inbound-name">Ethan Varghese</span><span class="inbound-company">QualiTlabs</span></div></div><div class="inbound-source">Source: halcyon.io (direct)</div></div>
+          </div>
+
+          <div style="padding: 0 16px 16px;">
+            <div style="font-size:11px; color:var(--text-muted); margin-top:12px; padding-top:12px; border-top:1px solid var(--divider);">
+              <strong style="color:var(--text-sec);">Source Summary:</strong><br>
+              DP Interest â 12 via halcyon.io, 5 via shared form link, 1 via integration<br>
+              Contact Us â All 7 via halcyon.io homepage (direct traffic)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conversion-stat">
+        <div class="conv-pct">68%</div>
+        <div class="conv-label"><span>13 of 19</span> DP Interest form fills booked a 15-min demo this week.<br>0 of 7 Contact Us fills have booked â follow-up needed.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <!-- SECTION: 10-WEEK TRENDS                     -->
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <div class="section" id="sec-trends">
+    <div class="section-header" onclick="toggleSection('sec-trends')">
+      <h2>10-Week Trends</h2>
+      <span class="toggle">â¼</span>
+    </div>
+    <div class="section-body">
+      <div class="section-sub">Jan 6 â Mar 17 Â· Tuesday to Tuesday</div>
+      <div class="trend-grid">
+
+        <!-- Sales Meetings per Week -->
+        <div class="trend-card">
+          <h3>Sales Meetings per Week</h3>
+          <div class="trend-subtitle">External prospect meetings from Fireflies</div>
+          <div class="trend-chart" id="meetings-trend"></div>
+          <div class="trend-avg-line">10-week avg: <span id="meetings-avg"></span></div>
+        </div>
+
+        <!-- Deals Created per Week -->
+        <div class="trend-card">
+          <h3>Deals Created per Week</h3>
+          <div class="trend-subtitle">New deals in HubSpot CRM</div>
+          <div class="trend-chart" id="deals-trend"></div>
+          <div class="trend-avg-line">10-week avg: <span id="deals-avg"></span> Â· Total: <span id="deals-total"></span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <!-- SECTION 3: DEAL HEALTH                      -->
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <div class="section" id="sec-health">
+    <div class="section-header" onclick="toggleSection('sec-health')">
+      <h2>Deal Health</h2>
+      <span class="toggle">â¼</span>
+    </div>
+    <div class="section-body">
+      <div class="section-sub">Pipeline Health Overview Â· MAR 10 â MAR 17, 2026</div>
+
+      <div class="filter-row" id="health-owner-filters">
+        <div class="filter-btn active" onclick="filterHealthOwner('all')">All Reps</div>
+        <div class="filter-btn" onclick="filterHealthOwner('SH')">SH</div>
+        <div class="filter-btn" onclick="filterHealthOwner('TG')">TG</div>
+        <div class="filter-btn" onclick="filterHealthOwner('CC')">CC</div>
+      </div>
+
+      <div class="health-grid" id="health-container">
+        <!-- Momentum -->
+        <div class="health-col momentum">
+          <div class="health-col-header"><span>â² MOMENTUM</span><span>8</span></div>
+          <div class="health-col-body">
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Related â¬</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$50k</div></div><div class="health-task">S6 â Bill says agreement by end of March. Sam check in when back â 4/30</div></div>
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Vantage</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$50k</div></div><div class="health-task">S5 â Amanda: 'happy to keep you in the loop.' Sam check in when back â 5/7</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">Jupiter â¬</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$60k</div></div><div class="health-task overdue">S5 â BESS/SDT demo went well. Send PReview file â ï¸ 3/6</div></div>
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Oracle</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$100k</div></div><div class="health-task overdue">S4 â Follow up if no response â ï¸ 3/11</div></div>
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">CyrusOne</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$75k</div></div><div class="health-task overdue">S4 â Sam follow up w/ Kevin re: scheduling â ï¸ 3/5</div></div>
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Evercore ISI</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$75k</div></div><div class="health-task">S4 â Sam check in w/ Alex when back â 5/5</div></div>
+            <div class="health-row" data-owner="CC"><div class="health-row-top"><div><span class="health-deal-name">Rowan</span><span class="health-deal-owner">CC</span></div><div class="health-deal-amount">$75k</div></div><div class="health-task">S4 â Vanessa 'likes what she sees.' Follow up â 3/23</div></div>
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Brookfield</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$75k</div></div><div class="health-task">S4 â Cadey nudge Arun for follow-up w/ Tad â 3/24</div></div>
+          </div>
+        </div>
+
+        <!-- Watchlist -->
+        <div class="health-col watchlist">
+          <div class="health-col-header"><span>â WATCHLIST</span><span>7</span></div>
+          <div class="health-col-body">
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">E Source</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$48k</div></div><div class="health-task overdue">S4 â Offer call w/ Joe & CTO re: API â ï¸ 3/10</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">Carbon Direct</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$36k</div></div><div class="health-task overdue">S4 â Nudge Rory again and stall â ï¸ 3/12</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">Sun2o</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$36k</div></div><div class="health-task overdue">S4 â Check if Scott shared proposal w/ MPs â ï¸ 3/4</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">Clearway</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$30k</div></div><div class="health-task overdue">S4 â Waiting on NDA counter-sig. Follow up â ï¸ 3/16</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">BurnsMc</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">TBD</div></div><div class="health-task overdue">S3 â Send Molly & Sarah proposal w/ seats â ï¸ 3/2</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">Steptoe</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$24k</div></div><div class="health-task overdue">S4 â Follow up if no engagement â ï¸ 3/16</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">Generac</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$24k</div></div><div class="health-task">S4 â Sent Design Partners invite. Follow up â 3/19</div></div>
+          </div>
+        </div>
+
+        <!-- At Risk -->
+        <div class="health-col at-risk">
+          <div class="health-col-header"><span>â¼ AT RISK</span><span>3</span></div>
+          <div class="health-col-body">
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Equinix</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$75k</div></div><div class="health-task">S4 â Chris follow up w/ Arthur for virtual demo â 3/24</div></div>
+            <div class="health-row" data-owner="SH"><div class="health-row-top"><div><span class="health-deal-name">Anthropic</span><span class="health-deal-owner">SH</span></div><div class="health-deal-amount">$50k</div></div><div class="health-task">S4 â Nat/Jordan nudge Brett while Sam out â 4/2</div></div>
+            <div class="health-row" data-owner="TG"><div class="health-row-top"><div><span class="health-deal-name">CP Energy</span><span class="health-deal-owner">TG</span></div><div class="health-deal-amount">$32k</div></div><div class="health-task overdue">S4 â Tad add to New Columns list â ï¸ 2/27</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <!-- SECTION 4: WEEK OVER WEEK                   -->
+  <!-- âââââââââââââââââââââââââââââââââââââââââââ -->
+  <div class="section" id="sec-wow">
+    <div class="section-header" onclick="toggleSection('sec-wow')">
+      <h2>Week over Week</h2>
+      <span class="toggle">â¼</span>
+    </div>
+    <div class="section-body">
+      <div class="section-sub">MAR 10 vs MAR 17</div>
+
+      <div class="wow-grid">
+        <div class="wow-card"><div class="wow-val">111</div><div class="wow-label">Active Pipeline</div><div class="wow-delta delta green">+8</div></div>
+        <div class="wow-card"><div class="wow-val">$1,845k</div><div class="wow-label">Pipeline Value</div><div class="wow-delta delta green">+$344k</div></div>
+        <div class="wow-card"><div class="wow-val">92</div><div class="wow-label">Closed Won</div><div class="wow-delta delta amber">0</div></div>
+        <div class="wow-card"><div class="wow-val">325</div><div class="wow-label">Stalled</div><div class="wow-delta delta green">-18</div></div>
+      </div>
+
+      <table class="stage-table">
+        <thead>
+          <tr><th>Stage</th><th style="text-align:center;">Last Wk</th><th style="text-align:center;">This Wk</th><th style="text-align:center;">Î</th><th style="text-align:right;">Value Î</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="stage-name">S1 â Lead ID / MQL</td><td class="num">21</td><td class="num">29</td><td class="delta-cell delta green">+8</td><td class="val-cell" style="color:var(--text-muted);">â</td></tr>
+          <tr><td class="stage-name">S2 â Engaged / MQL</td><td class="num">11</td><td class="num">8</td><td class="delta-cell delta red">-3</td><td class="val-cell" style="color:var(--text-muted);">â</td></tr>
+          <tr><td class="stage-name">S3 â Discovery / SQL</td><td class="num">29</td><td class="num">32</td><td class="delta-cell delta green">+3</td><td class="val-cell" style="color:var(--text-muted);">â</td></tr>
+          <tr><td class="stage-name">S4 â Proposal / SQL</td><td class="num">37</td><td class="num">35</td><td class="delta-cell delta red">-2</td><td class="val-cell" style="color:var(--text-muted);">â</td></tr>
+          <tr><td class="stage-name">S5 â Under Review / Opp</td><td class="num">4</td><td class="num">5</td><td class="delta-cell delta green">+1</td><td class="val-cell delta green">+$110k</td></tr>
+          <tr><td class="stage-name">S6 â Negotiation / Opp</td><td class="num">1</td><td class="num">2</td><td class="delta-cell delta green">+1</td><td class="val-cell delta green">+$50k</td></tr>
+        </tbody>
+      </table>
+
+      <div class="bottom-pills">
+        <div class="bottom-pill" style="color:var(--green);">Closed Won: 92 (0)</div>
+        <div class="bottom-pill" style="color:var(--green);">Stalled: 325 (-18)</div>
+        <div class="bottom-pill" style="color:var(--red);">Closed Lost: 176 (+30)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Collapsible sections
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// Meeting type filter
+let activeMeetingType = 'all';
+let activeOwner = 'all';
+
+function filterMeetings(type) {
+  activeMeetingType = type;
+  applyMeetingFilters();
+  document.querySelectorAll('#meeting-filters .pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function filterOwner(owner) {
+  activeOwner = owner;
+  applyMeetingFilters();
+  document.querySelectorAll('#owner-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function applyMeetingFilters() {
+  document.querySelectorAll('#meetings-container .meeting-col').forEach(col => {
+    const type = col.dataset.type;
+    const showCol = activeMeetingType === 'all' || activeMeetingType === type;
+    col.style.display = showCol ? '' : 'none';
+    if (showCol) {
+      col.querySelectorAll('.meeting-row').forEach(row => {
+        const owner = row.dataset.owner;
+        row.style.display = (activeOwner === 'all' || activeOwner === owner) ? '' : 'none';
+      });
+    }
+  });
+}
+
+// ââ 10-Week Trend Charts ââ
+(function() {
+  const labels = ['Jan 6','Jan 13','Jan 20','Jan 27','Feb 3','Feb 10','Feb 17','Feb 24','Mar 3','Mar 10'];
+  const meetingsData = [11, 9, 2, 11, 7, 15, 2, 6, 8, 16];
+  const dealsData    = [5, 7, 4, 56, 23, 16, 23, 18, 13, 21];
+
+  function renderBars(containerId, data, barClass, avgId, totalId) {
+    const container = document.getElementById(containerId);
+    const max = Math.max(...data);
+    const avg = (data.reduce((a,b) => a+b, 0) / data.length).toFixed(1);
+    document.getElementById(avgId).textContent = avg;
+    if (totalId) document.getElementById(totalId).textContent = data.reduce((a,b) => a+b, 0);
+
+    data.forEach((val, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'trend-bar-wrap';
+
+      const bar = document.createElement('div');
+      bar.className = 'trend-bar ' + barClass + (i === data.length - 1 ? ' current' : '');
+      const pct = max > 0 ? (val / max) * 100 : 0;
+      bar.style.height = Math.max(pct, 2) + '%';
+
+      const valLabel = document.createElement('div');
+      valLabel.className = 'bar-val';
+      valLabel.textContent = val;
+      bar.appendChild(valLabel);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'trend-label';
+      lbl.innerHTML = labels[i].replace(' ', '<br>');
+
+      wrap.appendChild(bar);
+      wrap.appendChild(lbl);
+      container.appendChild(wrap);
+    });
+  }
+
+  renderBars('meetings-trend', meetingsData, 'meetings-bar', 'meetings-avg', null);
+  renderBars('deals-trend', dealsData, 'deals-bar', 'deals-avg', 'deals-total');
+})();
+
+// Deal health owner filter
+function filterHealthOwner(owner) {
+  document.querySelectorAll('#health-owner-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('#health-container .health-row').forEach(row => {
+    row.style.display = (owner === 'all' || row.dataset.owner === owner) ? '' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>
